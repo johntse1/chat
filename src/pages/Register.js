@@ -1,6 +1,7 @@
-import React from 'react'
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../firebase";
+import React,{useEffect, useState} from 'react';
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { auth,storage } from "../firebase";
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 const Register = () => {
   const [err,setErr] = useState(false);
   const handleSubmit= async (e)=>{
@@ -11,7 +12,24 @@ const Register = () => {
     const file= e.target[3].files[0];
     try{
       const res= await createUserWithEmailAndPassword(auth, email, password);
-      
+
+const storageRef = ref(storage, displayName);
+
+const uploadTask = uploadBytesResumable(storageRef, file);
+
+uploadTask.on('state_changed', 
+
+  (error) => {
+    setErr(true);
+  }, 
+  () => {
+    getDownloadURL(uploadTask.snapshot.ref).then( async (downloadURL) => {
+      await updateProfile(res.user,{
+        displayName
+      });
+    });
+  }
+);
     }
     catch(err){
       setErr(true);
